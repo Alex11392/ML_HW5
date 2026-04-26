@@ -1,0 +1,13 @@
+__pycache__/
+.ipynb_checkpoints/
+outputs/
+checkpoints/
+artifacts/
+data/
+.venv/
+*.jsonl
+*.csv
+*.zip
+*.log
+*.bin
+*.safetensors
