@@ -143,7 +143,6 @@ def main():
             save_strategy="steps",
             save_steps=config.save_steps,
             bf16=torch.cuda.is_available(),
-            group_by_length=True,
             max_length=max_token_len,
             dataset_text_field="text",
             report_to="none",
