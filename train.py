@@ -37,15 +37,17 @@ def parse_args():
     parser.add_argument("--train-n-shot", type=int, default=None)
     parser.add_argument("--test-n-shot", type=int, default=None)
     parser.add_argument("--eval-limit-public", type=int, default=None)
+    parser.add_argument("--checkpoints", nargs="+", default=None)
     parser.add_argument("--skip-train", action="store_true")
     parser.add_argument("--skip-eval", action="store_true")
     return parser.parse_args()
 
 
-def evaluate_gsm8k_public(config, tokenizer, fewshot_pool):
+def evaluate_gsm8k_public(config, tokenizer, fewshot_pool, checkpoint_paths=None):
     gsm8k_public = load_jsonlines(config.gsm8k_public_file)
     rows = []
-    for ckpt in iter_checkpoints(config.output_dir):
+    checkpoints = checkpoint_paths or iter_checkpoints(config.output_dir)
+    for ckpt in checkpoints:
         model = load_model_with_adapter(config, ckpt)
         total = len(gsm8k_public)
         if config.eval_limit_public is not None:
@@ -160,7 +162,15 @@ def main():
         clear_memory()
 
     if not args.skip_eval:
-        rows = evaluate_gsm8k_public(config, tokenizer, fewshot_pool)
+        checkpoint_paths = None
+        if args.checkpoints:
+            checkpoint_paths = []
+            for ckpt in args.checkpoints:
+                if os.path.isdir(ckpt):
+                    checkpoint_paths.append(ckpt)
+                else:
+                    checkpoint_paths.append(os.path.join(config.output_dir, ckpt))
+        rows = evaluate_gsm8k_public(config, tokenizer, fewshot_pool, checkpoint_paths)
         metrics_path = os.path.join(config.metrics_dir, "checkpoint_metrics.json")
         save_json(metrics_path, rows)
         df = pd.DataFrame(
