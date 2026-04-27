@@ -263,13 +263,16 @@ def generate_response(
     temperature: float,
     top_p: float,
 ) -> str:
-    input_ids = tokenizer.apply_chat_template(
+    encoded = tokenizer.apply_chat_template(
         messages,
         tokenize=True,
         add_generation_prompt=True,
         return_tensors="pt",
-    ).to(model.device)
-    attention_mask = torch.ones_like(input_ids)
+        return_dict=True,
+    )
+    encoded = encoded.to(model.device)
+    input_ids = encoded["input_ids"]
+    attention_mask = encoded["attention_mask"]
     gen_kwargs = {
         "input_ids": input_ids,
         "attention_mask": attention_mask,
